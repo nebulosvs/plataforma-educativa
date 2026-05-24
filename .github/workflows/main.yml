@@ -38,8 +38,8 @@ jobs:
         run: |
             docker tag cursos-service:latest ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
             docker tag inscripciones-service:latest ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service
 
         
           
