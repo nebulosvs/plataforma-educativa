@@ -48,12 +48,10 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Docker build cursos-service
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest ./cursos-service
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest ./cursos-service
 
       - name: Push cursos-service
-        run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
 
       #################################################
       # INSCRIPCIONES SERVICE
@@ -64,12 +62,10 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Docker build inscripciones-service
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest ./inscripciones-service
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest ./inscripciones-service
 
       - name: Push inscripciones-service
-        run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
 
       #################################################
       # AWS
@@ -146,15 +142,7 @@ jobs:
             # Verificar
             docker ps
 
-          EOFname: SSH commands to deploy
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            # Autenticar en DockerHub desde EC2
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            # Descargar la última versión de la imagen
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
-            # Parar y eliminar cualquier contenedor previo
-            docker stop my-app || true && docker rm my-app || true
+          EOF
             # Iniciar el contenedor
             docker run -d --name my-app -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
           EOF
