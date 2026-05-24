@@ -12,18 +12,27 @@ jobs:
 
     steps:
 
-      # 1. Descargar código
+      #################################################
+      # CHECKOUT
+      #################################################
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Login DockerHub
+      #################################################
+      # DOCKER HUB
+      #################################################
+
       - name: Login DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3. Configurar Java
+      #################################################
+      # JAVA
+      #################################################
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -34,17 +43,14 @@ jobs:
       # CURSOS SERVICE
       #################################################
 
-      # 4. Compilar cursos-service
       - name: Build cursos-service
         working-directory: ./cursos-service
         run: mvn clean package -DskipTests
 
-      # 5. Construir imagen cursos-service
       - name: Docker build cursos-service
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest ./cursos-service
 
-      # 6. Push cursos-service
       - name: Push cursos-service
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
@@ -53,17 +59,14 @@ jobs:
       # INSCRIPCIONES SERVICE
       #################################################
 
-      # 7. Compilar inscripciones-service
       - name: Build inscripciones-service
         working-directory: ./inscripciones-service
         run: mvn clean package -DskipTests
 
-      # 8. Construir imagen inscripciones-service
       - name: Docker build inscripciones-service
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest ./inscripciones-service
 
-      # 9. Push inscripciones-service
       - name: Push inscripciones-service
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
@@ -72,7 +75,6 @@ jobs:
       # AWS
       #################################################
 
-      # 10. Configurar AWS
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -81,12 +83,15 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # 11. Configurar SSH
+      #################################################
+      # SSH KEY
+      #################################################
+
       - name: Add SSH Key
         run: |
-         mkdir -p ~/.ssh
-         echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 --decode > ~/.ssh/id_rsa
-         chmod 400 ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
 
       #################################################
       # DEPLOY EC2
@@ -94,10 +99,62 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-            ssh -T -i ~/.ssh/id_rsa \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -T -i ~/.ssh/id_rsa \
+          -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
 
-               docker ps
-            
-            EOF 
+            # Login DockerHub
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+            # Crear carpeta proyecto
+            mkdir -p ~/plataforma-educativa
+
+            # Entrar carpeta
+            cd ~/plataforma-educativa
+
+            # Crear docker-compose.yml
+            cat > docker-compose.yml << EOL
+            version: '3'
+
+            services:
+
+              cursos-service:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
+                container_name: cursos-service
+                ports:
+                  - "8081:8081"
+
+              inscripciones-service:
+                image: ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+                container_name: inscripciones-service
+                ports:
+                  - "8082:8082"
+                depends_on:
+                  - cursos-service
+            EOL
+
+            # Descargar imágenes
+            docker compose pull
+
+            # Detener contenedores anteriores
+            docker compose down || true
+
+            # Levantar contenedores
+            docker compose up -d
+
+            # Verificar
+            docker ps
+
+          EOFname: SSH commands to deploy
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # Autenticar en DockerHub desde EC2
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+            # Descargar la última versión de la imagen
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+            # Parar y eliminar cualquier contenedor previo
+            docker stop my-app || true && docker rm my-app || true
+            # Iniciar el contenedor
+            docker run -d --name my-app -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+          EOF
