@@ -1,0 +1,13 @@
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/InscripcionesServiceApplication.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/client/CursoClient.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/controller/HelloController.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/controller/InscripcionController.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/dto/CursoDTO.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/dto/DetalleResponseDTO.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/dto/InscripcionRequestDTO.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/dto/InscripcionResponseDTO.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/entity/DetalleInscripcion.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/entity/Inscripcion.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/repository/DetalleInscripcionRepository.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/repository/InscripcionRepository.java
+/home/sofia/Escritorio/plataforma-educativa/inscripciones-service/src/main/java/com/educacion/inscripciones/service/InscripcionService.java

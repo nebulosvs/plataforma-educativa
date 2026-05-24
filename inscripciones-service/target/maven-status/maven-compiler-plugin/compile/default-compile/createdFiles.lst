@@ -1,0 +1,13 @@
+com/educacion/inscripciones/dto/DetalleResponseDTO.class
+com/educacion/inscripciones/dto/InscripcionRequestDTO.class
+com/educacion/inscripciones/repository/DetalleInscripcionRepository.class
+com/educacion/inscripciones/InscripcionesServiceApplication.class
+com/educacion/inscripciones/repository/InscripcionRepository.class
+com/educacion/inscripciones/dto/CursoDTO.class
+com/educacion/inscripciones/dto/InscripcionResponseDTO.class
+com/educacion/inscripciones/entity/DetalleInscripcion.class
+com/educacion/inscripciones/client/CursoClient.class
+com/educacion/inscripciones/service/InscripcionService.class
+com/educacion/inscripciones/controller/InscripcionController.class
+com/educacion/inscripciones/controller/HelloController.class
+com/educacion/inscripciones/entity/Inscripcion.class

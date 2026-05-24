@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+
+  cursos-service:
+    build: ./cursos-service
+    ports:
+      - "8081:8081"
+
+  inscripciones-service:
+    build: ./inscripciones-service
+    ports:
+      - "8082:8082"
