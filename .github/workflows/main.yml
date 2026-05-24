@@ -84,9 +84,10 @@ jobs:
       # 11. Configurar SSH
       - name: Add SSH Key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+           mkdir -p ~/.ssh
+           printf "%s" "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+           chmod 600 ~/.ssh/id_rsa
+           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       #################################################
       # DEPLOY EC2
