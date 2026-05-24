@@ -85,7 +85,7 @@ jobs:
       - name: Add SSH Key
         run: |
          mkdir -p ~/.ssh
-         echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_rsa
+         echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 --decode > ~/.ssh/id_rsa
          chmod 400 ~/.ssh/id_rsa
 
       #################################################
