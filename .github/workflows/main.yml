@@ -1,72 +1,129 @@
-name: Build and Push Docker Image
- 
+name: Build and Deploy Microservices
+
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
-jobs: 
-  build:
-    runs-on: ubuntu-latest 
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
     steps:
 
-      # Paso 1: Checkout del repositorio
+      # 1. Descargar código
       - name: Checkout repository
         uses: actions/checkout@v3
-        
-      # Paso 2: Autenticar en DockerHub
-      - name: Log in to DockerHub
-        uses: docker/login-action@v2 
+
+      # 2. Login DockerHub
+      - name: Login DockerHub
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
-      # Paso 2.5: Install Docker Compose
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          
-      # Paso 3: Construir la imagen de Docker
-      - name: Build Docker Images
-        run: docker-compose build
 
-      # Paso 4: Hacer push de la imagen a DockerHub
-      - name: Push Docker Images
-        run: |
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service
-            docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service
+      # 3. Configurar Java
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
 
-        
-          
-     # Paso 5: Configurar credenciales de AWS para SSH, incluyendo AWS_SESSION_TOKEN
-      - name: Set up AWS credentials
+      #################################################
+      # CURSOS SERVICE
+      #################################################
+
+      # 4. Compilar cursos-service
+      - name: Build cursos-service
+        working-directory: ./cursos-service
+        run: mvn clean package -DskipTests
+
+      # 5. Construir imagen cursos-service
+      - name: Docker build cursos-service
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest ./cursos-service
+
+      # 6. Push cursos-service
+      - name: Push cursos-service
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
+
+      #################################################
+      # INSCRIPCIONES SERVICE
+      #################################################
+
+      # 7. Compilar inscripciones-service
+      - name: Build inscripciones-service
+        working-directory: ./inscripciones-service
+        run: mvn clean package -DskipTests
+
+      # 8. Construir imagen inscripciones-service
+      - name: Docker build inscripciones-service
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest ./inscripciones-service
+
+      # 9. Push inscripciones-service
+      - name: Push inscripciones-service
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+
+      #################################################
+      # AWS
+      #################################################
+
+      # 10. Configurar AWS
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Cambia a tu región
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-    # Paso 5.5: 
+          aws-region: us-east-1
+
+      # 11. Configurar SSH
       - name: Add SSH Key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      #################################################
+      # DEPLOY EC2
+      #################################################
 
-      # Paso 6: Conectarse a EC2 y desplegar el contenedor
-      - name: SSH commands to deploy
+      - name: Deploy to EC2
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            # Autenticar en DockerHub desde EC2
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+            # Login DockerHub
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            # Descargar la última versión de la imagen
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
-            # Parar y eliminar cualquier contenedor previo
-            docker stop my-app || true && docker rm my-app || true
-            # Iniciar el contenedor
-            docker run -d --name my-app -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+
+            # Descargar imágenes
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+
+            # Eliminar contenedores viejos
+            docker stop cursos-service || true
+            docker rm cursos-service || true
+
+            docker stop inscripciones-service || true
+            docker rm inscripciones-service || true
+
+            # Crear red Docker
+            docker network create microservices-network || true
+
+            # Levantar cursos-service
+            docker run -d \
+              --name cursos-service \
+              --network microservices-network \
+              -p 8081:8081 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
+
+            # Levantar inscripciones-service
+            docker run -d \
+              --name inscripciones-service \
+              --network microservices-network \
+              -p 8082:8082 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+
           EOF
