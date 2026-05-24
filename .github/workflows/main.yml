@@ -84,9 +84,9 @@ jobs:
       # 11. Configurar SSH
       - name: Add SSH Key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 400 ~/.ssh/id_rsa
+         mkdir -p ~/.ssh
+         echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_rsa
+         chmod 400 ~/.ssh/id_rsa
 
       #################################################
       # DEPLOY EC2
@@ -94,19 +94,10 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            ssh -T -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
 
-            # Login DockerHub
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-
-            # Ir carpeta proyecto
-            cd ~/plataforma-educativa
-
-            # Descargar últimas imágenes
-            docker compose pull
-
-            # Reiniciar servicios
-            docker compose down
-            docker compose up -d
-
-          EOF
+               docker ps
+            
+            EOF 
