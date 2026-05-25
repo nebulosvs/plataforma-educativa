@@ -100,49 +100,36 @@ jobs:
           -o UserKnownHostsFile=/dev/null \
           ${{ secrets.USER_SERVER }}@${{ secrets.EC2_HOST }} << 'EOF'
 
-            # Login DockerHub
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Crear carpeta proyecto
-            mkdir -p ~/plataforma-educativa
+          mkdir -p ~/plataforma-educativa
 
-            # Entrar carpeta
-            cd ~/plataforma-educativa
+          cd ~/plataforma-educativa
 
-            # Crear docker-compose.yml
-            cat > docker-compose.yml << EOL
-            version: '3'
+          cat > docker-compose.yml <<EOL
+          services:
 
-            services:
+            cursos-service:
+              image: ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
+              container_name: cursos-service
+              ports:
+                - "8081:8081"
 
-              cursos-service:
-                image: ${{ secrets.DOCKERHUB_USERNAME }}/cursos-service:latest
-                container_name: cursos-service
-                ports:
-                  - "8081:8081"
+            inscripciones-service:
+              image: ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
+              container_name: inscripciones-service
+              ports:
+                - "8082:8082"
+              depends_on:
+                - cursos-service
+          EOL
 
-              inscripciones-service:
-                image: ${{ secrets.DOCKERHUB_USERNAME }}/inscripciones-service:latest
-                container_name: inscripciones-service
-                ports:
-                  - "8082:8082"
-                depends_on:
-                  - cursos-service
-            EOL
+          docker compose down || true
 
-            # Descargar imágenes
-            docker compose pull
+          docker compose pull
 
-            # Detener contenedores anteriores
-            docker compose down || true
+          docker compose up -d
 
-            # Levantar contenedores
-            docker compose up -d
+          docker ps
 
-            # Verificar
-            docker ps
-
-          EOF
-            # Iniciar el contenedor
-            docker run -d --name my-app -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
           EOF
