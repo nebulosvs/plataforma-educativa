@@ -22,4 +22,9 @@ public class InscripcionController {
 
         return inscripcionService.registrarInscripcion(dto);
     }
+
+    @GetMapping
+    public Object listarInscripciones() {
+        return inscripcionService.listarInscripciones();
+    }
 }
