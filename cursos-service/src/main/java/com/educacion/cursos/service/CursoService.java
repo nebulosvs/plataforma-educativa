@@ -1,14 +1,12 @@
 package com.educacion.cursos.service;
 
-import com.educacion.cursos.dto.CursoRequestDTO;
-import com.educacion.cursos.dto.CursoResponseDTO;
 import com.educacion.cursos.entity.Curso;
 import com.educacion.cursos.repository.CursoRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CursoService {
@@ -16,39 +14,41 @@ public class CursoService {
     @Autowired
     private CursoRepository cursoRepository;
 
-    public List<CursoResponseDTO> listarCursos() {
-        return cursoRepository.findAll()
-                .stream()
-                .map(this::convertirDTO)
-                .collect(Collectors.toList());
+    // GET ALL
+    public List<Curso> listarCursos() {
+        return cursoRepository.findAll();
     }
 
-    public CursoResponseDTO guardarCurso(CursoRequestDTO dto) {
-
-        Curso curso = Curso.builder()
-                .nombre(dto.getNombre())
-                .instructor(dto.getInstructor())
-                .duracion(dto.getDuracion())
-                .costo(dto.getCosto())
-                .build();
-
-        Curso guardado = cursoRepository.save(curso);
-
-        return convertirDTO(guardado);
+    // GET BY ID
+    public Curso obtenerCurso(Long id) {
+        return cursoRepository.findById(id).orElse(null);
     }
 
-    public Curso buscarCurso(Long id) {
-        return cursoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
+    // CREATE
+    public Curso guardarCurso(Curso curso) {
+        return cursoRepository.save(curso);
     }
 
-    private CursoResponseDTO convertirDTO(Curso curso) {
-        return CursoResponseDTO.builder()
-                .id(curso.getId())
-                .nombre(curso.getNombre())
-                .instructor(curso.getInstructor())
-                .duracion(curso.getDuracion())
-                .costo(curso.getCosto())
-                .build();
+    // UPDATE
+    public Curso actualizarCurso(Long id, Curso cursoActualizado) {
+
+        Curso curso = cursoRepository.findById(id).orElse(null);
+
+        if (curso != null) {
+
+            curso.setNombre(cursoActualizado.getNombre());
+            curso.setInstructor(cursoActualizado.getInstructor());
+            curso.setDuracion(cursoActualizado.getDuracion());
+            curso.setCosto(cursoActualizado.getCosto());
+
+            return cursoRepository.save(curso);
+        }
+
+        return null;
+    }
+
+    // DELETE
+    public void eliminarCurso(Long id) {
+        cursoRepository.deleteById(id);
     }
 }
