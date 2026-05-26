@@ -5,8 +5,8 @@ import com.educacion.inscripciones.dto.CursoDTO;
 import com.educacion.inscripciones.dto.DetalleResponseDTO;
 import com.educacion.inscripciones.dto.InscripcionRequestDTO;
 import com.educacion.inscripciones.dto.InscripcionResponseDTO;
-import com.educacion.inscripciones.entity.DetalleInscripcion;
-import com.educacion.inscripciones.entity.Inscripcion;
+import com.educacion.inscripciones.model.DetalleInscripcion;
+import com.educacion.inscripciones.model.Inscripcion;
 import com.educacion.inscripciones.repository.InscripcionRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +64,15 @@ public class InscripcionService {
         inscripcionRepository.save(inscripcion);
 
         // Respuesta final
-        return new InscripcionResponseDTO(dto.getEstudiante(), cursosResponse, total);
+        return new InscripcionResponseDTO(
+                dto.getEstudiante(),
+                cursosResponse,
+                total
+        );
+    }
+
+    //  MÉTODO GET
+    public List<Inscripcion> listarInscripciones() {
+        return inscripcionRepository.findAll();
     }
 }
