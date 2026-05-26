@@ -1,10 +1,8 @@
 package com.educacion.cursos.controller;
 
-import com.educacion.cursos.dto.CursoRequestDTO;
-import com.educacion.cursos.dto.CursoResponseDTO;
 import com.educacion.cursos.entity.Curso;
 import com.educacion.cursos.service.CursoService;
-import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,18 +15,36 @@ public class CursoController {
     @Autowired
     private CursoService cursoService;
 
+    // GET ALL
     @GetMapping
-    public List<CursoResponseDTO> listarCursos() {
+    public List<Curso> listarCursos() {
         return cursoService.listarCursos();
     }
 
-    @PostMapping
-    public CursoResponseDTO guardarCurso(@Valid @RequestBody CursoRequestDTO dto) {
-        return cursoService.guardarCurso(dto);
-    }
-
+    // GET BY ID
     @GetMapping("/{id}")
     public Curso obtenerCurso(@PathVariable Long id) {
-        return cursoService.buscarCurso(id);
+        return cursoService.obtenerCurso(id);
+    }
+
+    // CREATE
+    @PostMapping
+    public Curso guardarCurso(@RequestBody Curso curso) {
+        return cursoService.guardarCurso(curso);
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public Curso actualizarCurso(
+            @PathVariable Long id,
+            @RequestBody Curso curso) {
+
+        return cursoService.actualizarCurso(id, curso);
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public void eliminarCurso(@PathVariable Long id) {
+        cursoService.eliminarCurso(id);
     }
 }
