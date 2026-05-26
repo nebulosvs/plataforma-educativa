@@ -1,14 +1,5 @@
 package com.educacion.inscripciones.service;
 
-import com.educacion.inscripciones.client.CursoClient;
-import com.educacion.inscripciones.dto.CursoDTO;
-import com.educacion.inscripciones.dto.DetalleResponseDTO;
-import com.educacion.inscripciones.dto.InscripcionRequestDTO;
-import com.educacion.inscripciones.dto.InscripcionResponseDTO;
-import com.educacion.inscripciones.model.DetalleInscripcion;
-import com.educacion.inscripciones.model.Inscripcion;
-import com.educacion.inscripciones.repository.InscripcionRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
